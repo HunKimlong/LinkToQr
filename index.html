@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Long QR</title>
+    <!-- Lightweight QR library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 450px;
+            width: 100%;
+        }
+
+        h2 {
+            margin-top: 0;
+            text-align: center;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+
+        .customizer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .color-picker-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="color"] {
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        input[type="range"] {
+            width: 100%;
+        }
+
+        .value-label {
+            font-size: 13px;
+            color: #666;
+            float: right;
+        }
+
+        /* QR Code Output Container */
+        .preview-area {
+            margin-top: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 250px;
+            background: #fafafa;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        /* The Custom Border Wrapper! */
+        #qr-border-wrapper {
+            display: inline-block;
+            transition: all 0.1s ease;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>Custom QR Code</h2>
+
+        <!-- Link Input -->
+        <div class="form-group">
+            <label for="urlInput">Destination Link</label>
+            <input type="text" id="urlInput" placeholder="Paste your link here..." value="https://google.com">
+        </div>
+
+        <!-- QR Colors -->
+        <div class="customizer-grid">
+            <div class="form-group">
+                <label for="fgColor">Code Color</label>
+                <div class="color-picker-wrapper">
+                    <input type="color" id="fgColor" value="#000000">
+                    <span id="fgText" style="font-size: 12px; color: #555;">#000000</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="bgColor">Code Background</label>
+                <div class="color-picker-wrapper">
+                    <input type="color" id="bgColor" value="#ffffff">
+                    <span id="bgText" style="font-size: 12px; color: #555;">#ffffff</span>
+                </div>
+            </div>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+
+        <!-- BORDER CUSTOMIZATION CONTROLS -->
+        <h3 style="font-size: 16px; margin-bottom: 15px; color: #444;">Border Settings</h3>
+
+        <div class="customizer-grid">
+            <div class="form-group">
+                <label for="borderColor">Border Color</label>
+                <div class="color-picker-wrapper">
+                    <input type="color" id="borderColor" value="#007bff">
+                    <span id="borderText" style="font-size: 12px; color: #555;">#007BFF</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="borderStyle">Border Style</label>
+                <select id="borderStyle">
+                    <option value="solid">Solid</option>
+                    <option value="dashed">Dashed</option>
+                    <option value="dotted">Dotted</option>
+                    <option value="double">Double</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="customizer-grid">
+            <div class="form-group">
+                <label for="borderWidth">Thickness <span class="value-label" id="widthVal">6px</span></label>
+                <input type="range" id="borderWidth" min="0" max="20" step="1" value="6">
+            </div>
+            <div class="form-group">
+                <label for="borderPadding">Spacing (Padding) <span class="value-label"
+                        id="paddingVal">15px</span></label>
+                <input type="range" id="borderPadding" min="0" max="30" step="1" value="15">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="borderRadius">Rounded Corners <span class="value-label" id="radiusVal">8px</span></label>
+            <input type="range" id="borderRadius" min="0" max="30" step="1" value="8">
+        </div>
+
+        <div class="preview-area">
+            <!-- Border Wrapper that holds the QR code -->
+            <div id="qr-border-wrapper">
+                <div id="qrcode"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const qrcodeContainer = document.getElementById("qrcode");
+        const borderWrapper = document.getElementById("qr-border-wrapper");
+
+        // Core inputs
+        const urlInput = document.getElementById("urlInput");
+        const fgColorInput = document.getElementById("fgColor");
+        const bgColorInput = document.getElementById("bgColor");
+
+        // Border inputs
+        const borderColorInput = document.getElementById("borderColor");
+        const borderStyleInput = document.getElementById("borderStyle");
+        const borderWidthInput = document.getElementById("borderWidth");
+        const borderPaddingInput = document.getElementById("borderPadding");
+        const borderRadiusInput = document.getElementById("borderRadius");
+
+        // Labels
+        const fgText = document.getElementById("fgText");
+        const bgText = document.getElementById("bgText");
+        const borderText = document.getElementById("borderText");
+        const widthVal = document.getElementById("widthVal");
+        const paddingVal = document.getElementById("paddingVal");
+        const radiusVal = document.getElementById("radiusVal");
+
+        function updateQRCode() {
+            const urlValue = urlInput.value.trim();
+            const fgColor = fgColorInput.value;
+            const bgColor = bgColorInput.value;
+
+            // Read Custom Border Values
+            const bColor = borderColorInput.value;
+            const bStyle = borderStyleInput.value;
+            const bWidth = borderWidthInput.value + "px";
+            const bPadding = borderPaddingInput.value + "px";
+            const bRadius = borderRadiusInput.value + "px";
+
+            // Update Labels text
+            fgText.textContent = fgColor.toUpperCase();
+            bgText.textContent = bgColor.toUpperCase();
+            borderText.textContent = bColor.toUpperCase();
+            widthVal.textContent = bWidth;
+            paddingVal.textContent = bPadding;
+            radiusVal.textContent = bRadius;
+
+            if (urlValue === "") {
+                qrcodeContainer.innerHTML = "<p style='color: #999;'>Please enter a link</p>";
+                borderWrapper.style.border = "none";
+                borderWrapper.style.background = "transparent";
+                return;
+            }
+
+            // 1. Update the CSS of the wrapper element to render the border
+            borderWrapper.style.border = `${bWidth} ${bStyle} ${bColor}`;
+            borderWrapper.style.padding = bPadding;
+            borderWrapper.style.borderRadius = bRadius;
+            borderWrapper.style.backgroundColor = bgColor; // Match the QR code's light background
+
+            // 2. Clear and regenerate the raw QR Code
+            qrcodeContainer.innerHTML = "";
+            new QRCode(qrcodeContainer, {
+                text: urlValue,
+                width: 180, // Safe default size
+                height: 180,
+                colorDark: fgColor,
+                colorLight: bgColor,
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+
+        // Attach listeners to all inputs to trigger update in real-time
+        const allInputs = [
+            urlInput, fgColorInput, bgColorInput,
+            borderColorInput, borderStyleInput, borderWidthInput,
+            borderPaddingInput, borderRadiusInput
+        ];
+
+        allInputs.forEach(input => input.addEventListener("input", updateQRCode));
+
+        // Initial load
+        updateQRCode();
+    </script>
+
+</body>
+
+</html>
